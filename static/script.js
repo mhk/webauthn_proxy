@@ -52,7 +52,8 @@ let formatFinishLoginParams = assertion => JSON.stringify({
 });
 
 let registerUser = () => {
-    let username = $('#username').val();
+    let username = $('#username').val().trim().toLowerCase();
+    $('#username').val(username);
 
     if (username === '') {
         errorMessage('Please enter a valid username');
@@ -96,7 +97,8 @@ let registerUser = () => {
 };
 
 let authenticateUser = () => {
-    let username = $('#username').val();
+    let username = $('#username').val().trim().toLowerCase();
+    $('#username').val(username);
     if (username === '') {
         errorMessage('Please enter a valid username');
         return;
