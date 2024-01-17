@@ -240,7 +240,7 @@ func HandleAuth(w http.ResponseWriter, r *http.Request) {
 	session, err := sessionStore.Get(r, SessionCookieName)
 	if err != nil {
 		logger.Errorf("Error getting session from session store during user auth handler: %s", err)
-		util.JSONResponse(w, authError, http.StatusInternalServerError)
+		util.JSONResponse(w, authError, http.StatusUnauthorized)
 		return
 	}
 
@@ -311,10 +311,16 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session, err := sessionStore.Get(r, SessionCookieName)
-	if err == nil {
+	// ignore errors and expire existing session, otherwise it might not possible to logout
+	if session != nil {
+		logger.Infof("Expiring session")
 		util.ExpireWebauthnSession(session, r, w)
 	}
-	http.Redirect(w, r, "/webauthn/login", http.StatusTemporaryRedirect)
+	loginPage := "/webauthn/login"
+	if redirectUrl := r.URL.Query().Get("redirect_url"); redirectUrl != "" {
+		loginPage += "?redirect_url=" + redirectUrl
+	}
+	http.Redirect(w, r, loginPage, http.StatusTemporaryRedirect)
 }
 
 // /webauthn/verify - one-time verification if user has recently authenticated, useful as 2FA check.
